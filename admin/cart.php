@@ -1,6 +1,6 @@
 <?php
 
-add_action('woocommerce_after_cart_table', 'quadlayers_woocommerce_hooks');
+add_action('woocommerce_after_cart_table', 'quadlayers_woocommerce_hooks', 10);
 
 function quadlayers_woocommerce_hooks()
 {
@@ -25,18 +25,15 @@ function getTotal()
             }
         }
     }
-
     return $total;
 }
 
 function cart_products_list()
 {
-    global $woocommerce;
-
-    $items = $woocommerce->cart->get_cart();
     $total = getTotal();
     $countForFree = get_option('free_product_settings')['count_for_free'];
     $categoryFreeProduct = get_option('free_product_settings')['category_free_product'];
+    $freeProduct = get_option('choice_free_product_option');
 
     if ($total >= $countForFree) {
         ?>
@@ -62,7 +59,10 @@ function cart_products_list()
             ];
             $loop = new WP_Query($args);
             while ($loop->have_posts()) : $loop->the_post(); ?>
-                <option value="<?= get_the_ID() ?>">
+                <option value="<?= get_the_ID() ?>"
+                    <?php if (get_the_ID() == (int)$freeProduct) {
+                        echo 'selected';
+                    } ?>>
                     <?php the_title(); ?></a>
                 </option>
             <?php endwhile;
@@ -94,7 +94,7 @@ function filter_add_cart_item_data($cart_item_data)
     return $cart_item_data;
 }
 
-add_filter('woocommerce_get_item_data', 'filter_woocommerce_get_item_data', 99, 2);
+add_filter('woocommerce_get_item_data', 'filter_woocommerce_get_item_data', 10, 2);
 
 function filter_woocommerce_get_item_data($cart_data, $cart_item = null)
 {
@@ -107,7 +107,7 @@ function filter_woocommerce_get_item_data($cart_data, $cart_item = null)
     return $cart_data;
 }
 
-add_action('woocommerce_before_calculate_totals', 'add_custom_price', 1000, 1);
+add_action('woocommerce_before_calculate_totals', 'add_custom_price', 10, 1);
 
 
 function add_custom_price($cart)
@@ -115,6 +115,7 @@ function add_custom_price($cart)
     if (did_action('woocommerce_before_calculate_totals') >= 2) {
         return;
     }
+
     $total = getTotal();
     $countForFree = get_option('free_product_settings')['count_for_free'];
 
@@ -125,8 +126,9 @@ function add_custom_price($cart)
             }
         }
     }
-    
+
     $freeProduct = get_option('choice_free_product_option');
+
     foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
         if (!isset($cart_item['free_product'])) {
             if (isset($_POST['add_free_product'])) {
@@ -134,10 +136,8 @@ function add_custom_price($cart)
             }
         } else {
             if (isset($_POST['add_free_product'])) {
-                if ((int)$cart_item_key !== (int)$freeProduct) {
-                    WC()->cart->remove_cart_item($cart_item_key);
-                    WC()->cart->add_to_cart($freeProduct);
-                }
+                WC()->cart->remove_cart_item($cart_item_key);
+                WC()->cart->add_to_cart($freeProduct);
             }
             $cart_item['data']->set_price(0);
             WC()->cart->set_quantity($cart_item_key, 1);

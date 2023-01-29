@@ -2,13 +2,13 @@
 
 function add_free_product_plugin_menu()
 {
-    add_submenu_page(
-        'options-general.php',
+    add_menu_page(
         'Free product',
         'Free product',
         'manage_options',
         'free-product-plugin',
-        'free_product_plugin_function'
+        'free_product_plugin_function',
+        'dashicons-media-spreadsheet'
     );
 }
 
@@ -48,7 +48,7 @@ function category_for_free()
     ?>
     <select name='free_product_settings[category_for_free]'>
         <?php foreach ($terms as $term) {
-            echo '<option value="' . $term->term_id . '" '. selected($options, $term->term_id).' >' . $term->name . '</option>';
+            echo '<option value="' . $term->term_id . '" ' . selected($options, $term->term_id) . ' >' . $term->name . '</option>';
         } ?>
     </select>
     <?php
@@ -83,7 +83,7 @@ function category_free_product()
     ?>
     <select name='free_product_settings[category_free_product]'>
         <?php foreach ($terms as $term) {
-            echo '<option value="' . $term->term_id . '" '. selected($options, $term->term_id).' >' . $term->name . '</option>';
+            echo '<option value="' . $term->term_id . '" ' . selected($options, $term->term_id) . ' >' . $term->name . '</option>';
         } ?>
     </select>
     <?php
