@@ -32,9 +32,7 @@ function free_product_settings_section_callback()
 
 function category_for_free()
 {
-    $woocommerce_category_id = get_queried_object_id();
     $args = array(
-        'parent' => $woocommerce_category_id,
         'hide_empty' => false
     );
     $terms = get_terms('product_cat', $args);
@@ -67,9 +65,7 @@ function count_for_free()
 
 function category_free_product()
 {
-    $woocommerce_category_id = get_queried_object_id();
     $args = array(
-        'parent' => $woocommerce_category_id,
         'hide_empty' => false
     );
     $terms = get_terms('product_cat', $args);
@@ -97,3 +93,4 @@ function free_product_plugin_function()
         submit_button(); ?>
     </form> <?php
 }
+?>

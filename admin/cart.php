@@ -80,35 +80,12 @@ function saveCustomForm()
 {
     if (isset($_POST['add_free_product'])) {
         update_option('choice_free_product_option', $_POST['add_free_product']);
-        header('Location: /cart');
+//        $url = ((!empty($_SERVER['HTTPS'])) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+//        header('Location: ' . $url);
     }
 }
 
-add_filter('woocommerce_add_cart_item_data', 'filter_add_cart_item_data', 10, 3);
-
-function filter_add_cart_item_data($cart_item_data)
-{
-    if (!empty ($_POST['free-product'])) {
-        $cart_item_data['free_product'] = sanitize_text_field($_POST['free-product']);
-    }
-    return $cart_item_data;
-}
-
-add_filter('woocommerce_get_item_data', 'filter_woocommerce_get_item_data', 10, 2);
-
-function filter_woocommerce_get_item_data($cart_data, $cart_item = null)
-{
-    if (isset($cart_item['free_product'])) {
-        $cart_data[] = array(
-            'name' => 'This is',
-            'value' => 'free'
-        );
-    }
-    return $cart_data;
-}
-
-add_action('woocommerce_before_calculate_totals', 'add_custom_price', 10, 1);
-
+add_action('woocommerce_before_calculate_totals', 'add_custom_price', 101, 4);
 
 function add_custom_price($cart)
 {
@@ -118,30 +95,31 @@ function add_custom_price($cart)
 
     $total = getTotal();
     $countForFree = get_option('free_product_settings')['count_for_free'];
-
     if ($total < $countForFree) {
         foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
             if (isset($cart_item['free_product'])) {
                 WC()->cart->remove_cart_item($cart_item_key);
             }
         }
+        update_option('choice_free_product_option', '');
     }
 
     $freeProduct = get_option('choice_free_product_option');
-
-    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-        if (!isset($cart_item['free_product'])) {
-            if (isset($_POST['add_free_product'])) {
-                WC()->cart->add_to_cart($freeProduct);
-            }
-        } else {
-            if (isset($_POST['add_free_product'])) {
+    if ($freeProduct) {
+        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+            if (!isset($cart_item['free_product'])) {
+                WC()->cart->add_to_cart($freeProduct, 1, 0, array(), ['free_product' => 'true']);
+            } else {
                 WC()->cart->remove_cart_item($cart_item_key);
-                WC()->cart->add_to_cart($freeProduct);
+                WC()->cart->add_to_cart($freeProduct, 1, 0, array(), ['free_product' => 'true']);
             }
-            $cart_item['data']->set_price(0);
-            WC()->cart->set_quantity($cart_item_key, 1);
+        }
+        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+            if (isset($cart_item['free_product'])) {
+                $cart_item['data']->set_price(0);
+                WC()->cart->set_quantity($cart_item_key, 1);
+            }
         }
     }
-} ?>
-
+}
+?>
