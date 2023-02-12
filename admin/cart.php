@@ -17,8 +17,19 @@ function quadlayers_woocommerce_hooks($cart)
             update_option('choice_free_product_option', ['id' => '', 'status' => false]);
         }
     }
-
-    if ($total >= $countForFree && $status) {
+    $args = [
+        'post_type' => 'product',
+        'post_status' => 'publish',
+        'tax_query' => [
+            [
+                'taxonomy' => 'product_cat',
+                'field' => 'id',
+                'terms' => $categoryFreeProduct,
+            ]
+        ],
+    ];
+    $loop = new WP_Query($args);
+    if ($total >= $countForFree && $status && $loop->post_count > 0) {
         ?>
         <div class="free-product-title">
             Free product
@@ -29,18 +40,7 @@ function quadlayers_woocommerce_hooks($cart)
                 Select free product
             </option>
             <?php
-            $args = [
-                'post_type' => 'product',
-                'post_status' => 'publish',
-                'tax_query' => [
-                    [
-                        'taxonomy' => 'product_cat',
-                        'field' => 'id',
-                        'terms' => $categoryFreeProduct,
-                    ]
-                ],
-            ];
-            $loop = new WP_Query($args);
+
             while ($loop->have_posts()) : $loop->the_post(); ?>
                 <option value="<?= get_the_ID() ?>"
                     <?php if (get_the_ID() == (int)$freeProduct['id']) {
