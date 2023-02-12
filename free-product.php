@@ -2,7 +2,7 @@
 /*
 Plugin Name: Free product
 Description: Free product for Woocommerce sites
-Version: 1.0.0
+Version: 1.1.0
 Author: Dima Oleinik
 Author URI: https://doleinik-portfolio.netlify.app/
 Copyright: Doleinik
